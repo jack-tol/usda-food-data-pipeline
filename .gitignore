@@ -1,2 +1,4 @@
 
 *.csv
+converted.json
+.DS_Store

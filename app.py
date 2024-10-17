@@ -1,11 +1,97 @@
 import pandas as pd
 import re
 import logging
-import csv  # Importing csv for quoting constants used directly in pandas
-import os  # Importing os for file operations
+import csv
+import os
+import requests
+from bs4 import BeautifulSoup
+import zipfile
+import shutil
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
+
+# Function to download and extract files
+def download_and_extract_files(url):
+    """Download the latest USDA food dataset and extract the contents."""
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    # Find the download link based on the table and row structure
+    download_link = next(
+        (
+            row.find_all("td")[2].find("a")["href"]
+            for table in soup.find_all("table", class_="downloads_table")
+            for row in table.find_all("tr")
+            if row.find("td") and "Full Download of All Data Types" in row.find("td").get_text(strip=True)
+        ),
+        None
+    )
+
+    if download_link:
+        # Construct the full URL of the download link
+        full_url = f"https://fdc.nal.usda.gov{download_link}"
+        logging.info(f"Latest download link found: {full_url}")
+        
+        # File name based on the URL
+        file_name = full_url.split("/")[-1]
+        
+        # Download the file using streaming to handle large files efficiently
+        with requests.get(full_url, stream=True) as response:
+            response.raise_for_status()  # Ensure the request was successful
+            with open(file_name, 'wb') as file:
+                for chunk in response.iter_content(chunk_size=8192):
+                    file.write(chunk)
+        
+        logging.info(f"Downloaded file: {file_name}")
+        
+        # Unzip the file
+        extracted_folder_name = file_name.replace('.zip', '')  # Assuming the extracted folder name is the same as the zip file without the extension
+        with zipfile.ZipFile(file_name, 'r') as zip_ref:
+            zip_ref.extractall(extracted_folder_name)
+        logging.info(f"Extracted contents of {file_name} to folder: {extracted_folder_name}")
+        
+        return extracted_folder_name, file_name
+    else:
+        logging.error("Download link not found.")
+        return None, None
+
+# Function to move and cleanup extracted files
+def move_and_cleanup_extracted_files(extracted_folder_name, zip_file_name):
+    """Move extracted files to the parent directory and clean up temporary files."""
+    nested_folder = next(
+        (name for name in os.listdir(extracted_folder_name) if os.path.isdir(os.path.join(extracted_folder_name, name))),
+        None
+    )
+    
+    if nested_folder:
+        nested_folder_path = os.path.join(extracted_folder_name, nested_folder)
+        
+        # Define the files to extract and move
+        files_to_extract = ["nutrient.csv", "food.csv", "branded_food.csv", "food_nutrient.csv"]
+        files_found = []
+
+        # Check if the specified files exist and move them to the parent directory if they do
+        for file in files_to_extract:
+            src = os.path.join(nested_folder_path, file)
+            dest = os.path.join(".", file)
+            if os.path.exists(src):
+                shutil.move(src, dest)
+                logging.info(f"Moved {file} to the parent directory.")
+                files_found.append(file)
+            else:
+                logging.warning(f"{file} not found in the nested folder.")
+
+        # Clean up only if all files are successfully moved
+        if len(files_found) == len(files_to_extract):
+            shutil.rmtree(extracted_folder_name)
+            logging.info(f"Removed the extracted folder: {extracted_folder_name}")
+            os.remove(zip_file_name)
+            logging.info(f"Removed the zip file: {zip_file_name}")
+        else:
+            logging.warning("Not all specified files were found. Keeping the extracted folder and zip file for debugging purposes.")
+    else:
+        logging.error("No nested folder found within the extracted folder. Keeping files for inspection.")
 
 # Function to normalize text
 def normalize_text(text):
@@ -123,6 +209,17 @@ def merge_final_data(merged_branded_food_df, pivoted_nutrient_df):
     return final_merged_df
 
 def main():
+    # URLs and initial setup
+    url = "https://fdc.nal.usda.gov/download-datasets.html"
+    
+    # Step 1: Download and extract the files
+    extracted_folder_name, zip_file_name = download_and_extract_files(url)
+    
+    # Step 2: Move and cleanup the extracted files
+    if extracted_folder_name and zip_file_name:
+        move_and_cleanup_extracted_files(extracted_folder_name, zip_file_name)
+    
+    # Proceed with the rest of the data processing pipeline
     branded_food_df = read_and_clean_branded_food("branded_food.csv")
     merged_branded_food_df = merge_branded_food_with_food_data(branded_food_df, "food.csv")
     cleaned_nutrient_df = clean_nutrient("nutrient.csv")

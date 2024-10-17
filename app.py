@@ -78,7 +78,7 @@ def main():
     final_df = merge_final_data(merged_branded_food_df, pivoted_nutrient_df)
     
     # Export the final DataFrame to a CSV file
-    final_df.to_csv("food_data_final.csv", index=False)
+    final_df.to_csv("fda_food_nutrient_data.csv", index=False)
 
 if __name__ == "__main__":
     main()

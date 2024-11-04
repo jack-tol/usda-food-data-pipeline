@@ -120,6 +120,7 @@ def apply_nutrient_thresholds(final_data: pd.DataFrame) -> pd.DataFrame:
         threshold = thresholds.get(column, thresholds.get(unit))
         if threshold is not None:
             final_data[column] = final_data[column].where(final_data[column] <= threshold, np.nan)
+    final_data[nutrient_columns] = final_data[nutrient_columns].round(2)
     return final_data
 
 def remove_invalid_serving_sizes(final_data: pd.DataFrame) -> pd.DataFrame:

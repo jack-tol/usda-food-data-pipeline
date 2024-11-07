@@ -24,3 +24,7 @@ The cleaned USDA Branded Food Dataset, created by this pipeline, is available on
 ## Demo
 
 The USDA Food Assistant, hosted on Hugging Face Spaces, can be accessed [here](https://huggingface.co/spaces/jacktol/usda-food-assistant).
+
+### License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

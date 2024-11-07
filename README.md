@@ -19,11 +19,11 @@ For more detailed information on this pipeline and assistant, please refer to th
 
 ## Dataset Access
 
-The cleaned USDA Branded Food Dataset, created by this pipeline, is available on Hugging Face Datasets [here](https://huggingface.co/datasets/jacktol/usda_branded_food_data). 
+The cleaned USDA Branded Food Dataset, created by this pipeline, is available on HuggingFace Datasets [here](https://huggingface.co/datasets/jacktol/usda_branded_food_data). 
 
 ## Demo
 
-The USDA Food Assistant, hosted on Hugging Face Spaces, can be accessed [here](https://huggingface.co/spaces/jacktol/usda-food-assistant).
+The USDA Food Assistant, hosted on HuggingFace Spaces, can be accessed [here](https://huggingface.co/spaces/jacktol/usda-food-assistant).
 
 ### License
 

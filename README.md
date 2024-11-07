@@ -1,4 +1,4 @@
-# USDA Food Data Pipeline and USDA Food Assistant
+# USDA Food Data Pipeline & USDA Food Assistant
 
 This repository contains code for processing and refining the USDA FoodData Central (FDC) dataset, a publicly accessible and comprehensive resource providing information on foods available on U.S. consumer shelves. Additionally, it includes the code for the USDA Food Assistant, an interactive tool designed to allow users to explore food data in a conversational format.
 
